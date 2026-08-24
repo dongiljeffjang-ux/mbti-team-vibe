@@ -76,6 +76,9 @@ export default function App() {
       if (data.checksum != null && data.checksum !== r.chemistry) {
         console.warn("계산 결과 불일치", { client: r.chemistry, server: data.checksum });
       }
+      if (!data.strengths || !Array.isArray(data.strengths.strengths) || !data.conflicts || !Array.isArray(data.conflicts.tips)) {
+        throw new Error("AI 응답 형식이 올바르지 않습니다.");
+      }
       setLlm({ loading: false, s: data.strengths, c: data.conflicts, error: null, cached: data.cached });
     } catch (e) {
       setLlm({ loading: false, s: null, c: null, error: `해설 생성 실패 (${e.message}). 아래 계산 결과는 그대로 유효합니다.` });
@@ -258,7 +261,7 @@ export default function App() {
                 <>
                   <p className="lead">{llm.s.summary}</p>
                   <div className="cards">
-                    {llm.s.strengths.map((s, i) => (
+                    {(llm.s.strengths || []).map((s, i) => (
                       <div className="card" key={i}><h4>{s.title}</h4><p>{s.detail}</p></div>
                     ))}
                   </div>
