@@ -86,7 +86,7 @@ ${JSON.stringify(ctx, null, 2)}
 ${STYLE}
 
 JSON만 출력. 마크다운·설명 금지.
-{"conflicts":[{"title":"팀 상황에 맞는 갈등 제목","people":"관련 팀원 이름 또는 역할","scenario":"갈등이 나타날 수 있는 실제 업무 장면 1~2문장","why":"MBTI 경향·직무·개인 서술을 연결한 이유 1~2문장","advice":"팀 목표 달성을 위해 이번 주 실행할 해결책 1~2문장"}],"tips":["팀 목표에 맞는 협업 규칙 1문장","협업 규칙 1문장","협업 규칙 1문장"]}`;
+{"conflicts":[{"title":"팀 상황에 맞는 갈등 제목","people":"관련 팀원 이름 또는 역할","scenario":"갈등이 나타날 수 있는 실제 업무 장면 1~2문장","why":"MBTI 경향·직무·개인 서술을 연결한 이유 1~2문장","advice":"팀 목표 달성을 위해 이번 주 실행할 해결책 1~2문장"}],"scenarios":{"conflict":{"title":"갈등이 가장 커질 수 있는 순간","when":"갈등이 불거질 업무 조건","case":"실제 팀에서 벌어질 법한 사례 2~3문장","reading":"각 팀원이 다르게 반응하는 이유 1~2문장","move":"팀 목표를 지키기 위한 대응 행동 1~2문장"},"synergy":{"title":"시너지가 가장 크게 나는 순간","when":"팀 강점이 동시에 작동하는 업무 조건","case":"실제 팀에서 벌어질 법한 성공 사례 2~3문장","reading":"각 팀원의 강점이 어떻게 연결되는지 1~2문장","move":"이 시너지를 재현하기 위한 운영 방법 1~2문장"}},"tips":["팀 목표에 맞는 협업 규칙 1문장","협업 규칙 1문장","협업 규칙 1문장"]}`;
 
 function validate(body) {
   const { teamName, goal, purpose, members } = body || {};
@@ -127,7 +127,7 @@ export default async function handler(req, res) {
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 4, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note]) }))
+    .update(JSON.stringify({ v: 5, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note]) }))
     .digest("hex");
 
   if (admin) {
@@ -145,7 +145,7 @@ export default async function handler(req, res) {
   try {
     const [strengths, conflicts] = await Promise.all([ask(strengthsPrompt(ctx)), ask(conflictsPrompt(ctx))]);
     if (!strengths.summary || !Array.isArray(strengths.strengths)) throw new Error("강점 응답 형식이 올바르지 않습니다.");
-    if (!Array.isArray(conflicts.conflicts) || !Array.isArray(conflicts.tips)) throw new Error("갈등 응답 형식이 올바르지 않습니다.");
+    if (!Array.isArray(conflicts.conflicts) || !Array.isArray(conflicts.tips) || !conflicts.scenarios?.conflict || !conflicts.scenarios?.synergy) throw new Error("갈등 응답 형식이 올바르지 않습니다.");
     strengths.memberInsights = Array.isArray(strengths.memberInsights) ? strengths.memberInsights : [];
     const payload = { strengths, conflicts };
 
