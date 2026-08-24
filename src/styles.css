@@ -124,6 +124,7 @@
 .conf-n{font-family:var(--mono); font-size:11px; color:var(--exec);}
 .conf-hd h4{font-size:14px; font-weight:700;}
 .conf-why{font-size:13px; color:var(--muted);}
+.conf-people{font-family:var(--mono);font-size:10px;color:var(--analysis);margin-bottom:6px}.conf-reason{font-size:12px;color:var(--muted);margin-top:6px;padding-left:10px;border-left:2px solid var(--line2)}
 .conf-fix{font-size:13px; margin-top:8px; padding-top:8px; border-top:1px dashed var(--line2);}
 .conf-fix span{font-family:var(--mono); font-size:10px; letter-spacing:.1em; background:var(--ink); color:#fff; padding:2px 5px; margin-right:8px;}
 
