@@ -5,8 +5,8 @@
   "outputDirectory": "dist",
   "functions": {
     "api/narrative.js": {
-      "runtime": "nodejs20.x",
       "maxDuration": 30
     }
   }
 }
+
