@@ -6,7 +6,15 @@ const roleRules = [{ name: '회의 진행자', letters: ['E', 'J'], icon: '🎙�
 const strengthMap: Record<string, [string, string]> = { E: ['활발한 소통', '빠른 의견 교환과 분위기 활성화에 강해요.'], I: ['깊은 집중', '혼자 생각을 정리한 뒤 밀도 높은 의견을 만들어요.'], S: ['현실적인 실행력', '구체적인 계획과 디테일을 챙겨요.'], N: ['아이디어 확장', '큰 그림과 새로운 가능성을 발견해요.'], T: ['논리적 판단', '우선순위를 세우고 핵심을 빠르게 결정해요.'], F: ['관계 조율', '서로의 관점을 살피며 협력의 온도를 맞춰요.'], J: ['안정적인 운영', '일정과 마감, 다음 액션을 명확하게 만들어요.'], P: ['유연한 대응', '변화에 맞춰 대안을 빠르게 탐색해요.'] };
 export function analyzeTeam(input: TeamInput) {
   const counts: Record<string, number> = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
-  input.members.forEach(m => [...m.mbti].forEach(letter => counts[letter]++));
+  input.members.forEach(m => {
+    const preferences = m.preferences || {};
+    ['E', 'S', 'T', 'J'].forEach(letter => {
+      const opposite = axis[letter][1];
+      const value = preferences[letter] ?? ([...m.mbti].includes(letter) ? 100 : 0);
+      counts[letter] += value / 100;
+      counts[opposite] += (100 - value) / 100;
+    });
+  });
   const profile = Object.fromEntries(Object.entries(counts).map(([k, v]) => [k, Math.round((v / input.members.length) * 100)]));
   const dominant = ['E','I','S','N','T','F','J','P'].sort((a,b) => counts[b] - counts[a]);
   const balance = ['E','S','T','J'].reduce((sum, a) => sum + Math.min(counts[a], counts[axis[a][1]]) / input.members.length * 5, 0);
