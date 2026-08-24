@@ -76,7 +76,7 @@ export default function App() {
       if (data.checksum != null && data.checksum !== r.chemistry) {
         console.warn("계산 결과 불일치", { client: r.chemistry, server: data.checksum });
       }
-      if (!data.strengths || !Array.isArray(data.strengths.strengths) || !data.conflicts || !Array.isArray(data.conflicts.tips)) {
+      if (!data.strengths || !Array.isArray(data.strengths.strengths) || !data.conflicts || !Array.isArray(data.conflicts.tips) || !data.conflicts.scenarios) {
         throw new Error("AI 응답 형식이 올바르지 않습니다.");
       }
       setLlm({ loading: false, s: data.strengths, c: data.conflicts, error: null, cached: data.cached });
@@ -304,6 +304,15 @@ export default function App() {
                     </div>
                 ))}
               </div>
+
+              {llm.c?.scenarios && (
+                <div className="scenario-grid">
+                  {[['conflict','가장 크게 부딪히는 경우','scenario-risk'],['synergy','가장 크게 시너지가 나는 경우','scenario-win']].map(([kind,label,tone]) => {
+                    const s = llm.c.scenarios[kind];
+                    return <article className={`scenario-card ${tone}`} key={kind}><span className="scenario-label">AI SCENARIO · {label}</span><h3>{s.title}</h3><b>언제</b><p>{s.when}</p><b>사례</b><p>{s.case}</p><b>해석</b><p>{s.reading}</p><div className="scenario-action"><strong>액션</strong>{s.move}</div></article>;
+                  })}
+                </div>
+              )}
 
               <div className="panel-hd mt"><span className="tag">04</span><h2>이 팀에 필요한 유형</h2></div>
               <p className="lead">성향 균형, 기존 멤버와의 궁합, 가장 약한 축(<b>{result.weakAxis}</b>) 보강력을 함께 계산한 보완도 순위입니다.</p>
