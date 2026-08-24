@@ -71,7 +71,7 @@ export default function App() {
         body: JSON.stringify({ teamName, goal, purpose, members: list.map((m) => ({ name: m.name, type: m.type, role: m.role, note: m.note })) }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      if (!res.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" · ") || `HTTP ${res.status}`);
       // 서버도 같은 rules.js로 계산한다. 어긋나면 배포 버전이 섞인 것.
       if (data.checksum != null && data.checksum !== r.chemistry) {
         console.warn("계산 결과 불일치", { client: r.chemistry, server: data.checksum });
