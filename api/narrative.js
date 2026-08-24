@@ -65,10 +65,6 @@ async function ask(prompt) {
   const data = await res.json();
   const content = data.choices?.[0]?.message?.content || "{}";
   const parsed = JSON.parse(content.replace(/```json|```/g, "").trim());
-  if (!parsed.summary || !Array.isArray(parsed.strengths)) {
-    throw new Error("OpenAI 응답 형식이 올바르지 않습니다.");
-  }
-  parsed.memberInsights = Array.isArray(parsed.memberInsights) ? parsed.memberInsights : [];
   return parsed;
 }
 
@@ -146,6 +142,9 @@ export default async function handler(req, res) {
 
   try {
     const [strengths, conflicts] = await Promise.all([ask(strengthsPrompt(ctx)), ask(conflictsPrompt(ctx))]);
+    if (!strengths.summary || !Array.isArray(strengths.strengths)) throw new Error("강점 응답 형식이 올바르지 않습니다.");
+    if (!Array.isArray(conflicts.conflicts) || !Array.isArray(conflicts.tips)) throw new Error("갈등 응답 형식이 올바르지 않습니다.");
+    strengths.memberInsights = Array.isArray(strengths.memberInsights) ? strengths.memberInsights : [];
     const payload = { strengths, conflicts };
 
     if (admin) {
