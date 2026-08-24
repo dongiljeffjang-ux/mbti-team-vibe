@@ -70,7 +70,7 @@ ${JSON.stringify(ctx, null, 2)}
 ${STYLE}
 
 JSON만 출력. 마크다운·설명 금지.
-{"summary":"팀 전체 케미를 요약한 2~3문장","strengths":[{"title":"6자 이내 제목","detail":"1문장"},{"title":"","detail":""},{"title":"","detail":""}],"pairTip":"최고궁합 두 사람을 어떤 일에 붙이면 좋은지 1문장"}`;
+{"summary":"팀 목표를 고려한 전체 협업 전망 2~3문장","strengths":[{"title":"6자 이내 제목","detail":"팀 목표에 어떻게 기여하는지 포함한 2문장"},{"title":"","detail":""},{"title":"","detail":""}],"memberInsights":[{"name":"팀원 이름","contribution":"현재 역할과 강점을 팀 목표에 연결한 2문장","watchout":"이 팀에서 협업할 때 주의할 점 1문장"}],"pairTip":"최고궁합 두 사람을 이 팀의 어떤 업무에 붙이면 좋은지 1문장"}`;
 
 const conflictsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀 분석 결과에서 감지된 갈등 신호를 팀의 실제 목적과 상황에 맞는 실무 조언으로 풀어라. 숫자는 바꾸지 마라.
 
