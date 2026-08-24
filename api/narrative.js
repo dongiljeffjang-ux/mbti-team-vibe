@@ -41,7 +41,7 @@ function buildContext(members, goal, purpose, teamName, r) {
 }
 
 async function ask(prompt) {
-  const res = await fetch("https://api.openai.com/v1/responses", {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -49,10 +49,13 @@ async function ask(prompt) {
     },
     body: JSON.stringify({
       model: MODEL,
-      input: [{ role: "user", content: [{ type: "input_text", text: prompt }] }],
-      max_output_tokens: 1200,
-      store: false,
-      text: { format: { type: "json_object" } },
+      messages: [
+        { role: "system", content: "반드시 유효한 JSON 객체만 출력하세요. 마크다운 코드펜스를 사용하지 마세요." },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 1200,
+      temperature: 0.4,
+      response_format: { type: "json_object" },
     }),
   });
   if (!res.ok) {
@@ -60,7 +63,8 @@ async function ask(prompt) {
     throw new Error(`OpenAI ${res.status}: ${body.slice(0, 200)}`);
   }
   const data = await res.json();
-  const parsed = JSON.parse(data.output_text || "{}");
+  const content = data.choices?.[0]?.message?.content || "{}";
+  const parsed = JSON.parse(content.replace(/```json|```/g, "").trim());
   if (!parsed.summary || !Array.isArray(parsed.strengths)) {
     throw new Error("OpenAI 응답 형식이 올바르지 않습니다.");
   }
