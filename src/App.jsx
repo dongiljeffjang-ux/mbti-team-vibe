@@ -54,6 +54,7 @@ export default function App() {
 
   const valid = members.filter((m) => m.type);
   const ready = valid.length >= 2;
+  const hasSajuInput = result?.members?.some((m) => m.birthDate && m.birthTime);
 
   const run = useCallback(async () => {
     const list = valid.map((m, i) => ({ ...m, name: m.name?.trim() || `팀원 ${i + 1}`, role: m.role?.trim() || "미정", note: m.note?.trim() || "" }));
@@ -289,7 +290,7 @@ export default function App() {
                       ))}
                     </div>
                   )}
-                  {(llm.s.sajuSummary || llm.s.sajuInsights?.length > 0) && <div className="saju-report"><div className="section-kicker">SAJU REFERENCE · 전통 명리학 참고</div><p className="lead">{llm.s.sajuSummary}</p>{llm.s.sajuInsights?.map((m, i) => <div className="saju-insight" key={i}><h4>{m.name} <small>{m.dayMaster}</small></h4><p>{m.elementSummary}</p><small>협업 적용 · {m.collaboration}</small></div>)}<p className="disclaimer">※ 사주 해석은 입력된 출생 정보의 만세력 결과와 표면 오행 분포를 바탕으로 한 문화적 참고 정보이며, 과학적 진단이나 미래 예측이 아닙니다.</p></div>}
+                  {hasSajuInput && (llm.s.sajuSummary || llm.s.sajuInsights?.length > 0) && <div className="saju-report"><div className="section-kicker">SAJU REFERENCE · 전통 명리학 참고</div><p className="lead">{llm.s.sajuSummary}</p>{llm.s.sajuInsights?.map((m, i) => <div className="saju-insight" key={i}><h4>{m.name} <small>{m.dayMaster}</small></h4><p>{m.elementSummary}</p><small>협업 적용 · {m.collaboration}</small></div>)}<p className="disclaimer">※ 사주 해석은 입력된 출생 정보의 만세력 결과와 표면 오행 분포를 바탕으로 한 문화적 참고 정보이며, 과학적 진단이나 미래 예측이 아닙니다.</p></div>}
                 </>
               )}
 
