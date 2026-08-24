@@ -125,6 +125,8 @@
 .conf-hd h4{font-size:14px; font-weight:700;}
 .conf-why{font-size:13px; color:var(--muted);}
 .conf-people{font-family:var(--mono);font-size:10px;color:var(--analysis);margin-bottom:6px}.conf-reason{font-size:12px;color:var(--muted);margin-top:6px;padding-left:10px;border-left:2px solid var(--line2)}
+.scenario-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}.scenario-card{background:#fff;border:1px solid var(--line);padding:18px}.scenario-card.scenario-risk{border-top:4px solid #c44f68}.scenario-card.scenario-win{border-top:4px solid #702ee0}.scenario-label{font:10px var(--mono);letter-spacing:.08em;color:var(--muted)}.scenario-card h3{font-size:18px;font-weight:600;margin:8px 0 16px}.scenario-card b{display:block;font:10px var(--mono);letter-spacing:.08em;color:var(--muted);margin-top:10px;text-transform:uppercase}.scenario-card p{font-size:13px;line-height:1.65;color:var(--ink);margin-top:3px}.scenario-action{margin-top:16px;background:#f1f3f7;padding:10px 12px;font-size:12px;line-height:1.6}.scenario-action strong{font:10px var(--mono);margin-right:8px;color:var(--analysis)}
+@media(max-width:700px){.scenario-grid{grid-template-columns:1fr}}
 .conf-fix{font-size:13px; margin-top:8px; padding-top:8px; border-top:1px dashed var(--line2);}
 .conf-fix span{font-family:var(--mono); font-size:10px; letter-spacing:.1em; background:var(--ink); color:#fff; padding:2px 5px; margin-right:8px;}
 
