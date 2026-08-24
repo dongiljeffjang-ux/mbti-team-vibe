@@ -60,7 +60,11 @@ async function ask(prompt) {
     throw new Error(`OpenAI ${res.status}: ${body.slice(0, 200)}`);
   }
   const data = await res.json();
-  return JSON.parse(data.output_text || "{}");
+  const parsed = JSON.parse(data.output_text || "{}");
+  if (!parsed.summary || !Array.isArray(parsed.strengths) || !Array.isArray(parsed.memberInsights)) {
+    throw new Error("OpenAI 응답 형식이 올바르지 않습니다.");
+  }
+  return parsed;
 }
 
 const strengthsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀의 목적과 상황에 맞춰 MBTI 협업 경향을 적용해라. 숫자는 절대 다시 계산하거나 바꾸지 말고 해석만 해라.
