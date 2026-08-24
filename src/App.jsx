@@ -42,7 +42,7 @@ function Bar({ label, value, colorVar, right }) {
 
 export default function App() {
   const [teamName, setTeamName] = useState("");
-  const [goal, setGoal] = useState(GOALS[0]);
+  const [goal, setGoal] = useState("");
   const [purpose, setPurpose] = useState("");
   const [members, setMembers] = useState(seed);
   const [picking, setPicking] = useState(null);
@@ -143,7 +143,7 @@ export default function App() {
             <button key={num} className={`report-nav-item ${result && tab === key ? 'active' : ''}`} onClick={() => { setTab(key); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><span>{num}</span>{label}</button>
           ))}
         </nav>
-        <div className="report-sidebar-bottom"><span>ⓘ 분석 기준 및 면책</span><button onClick={run} disabled={!ready || !teamName.trim() || purpose.trim().length < 20 || llm.loading}>분석 종합 완료</button></div>
+        <div className="report-sidebar-bottom"><span>ⓘ 분석 기준 및 면책</span><button onClick={run} disabled={!ready || !teamName.trim() || !goal.trim() || purpose.trim().length < 20 || llm.loading}>분석 종합 완료</button></div>
       </aside>
       <div className="report-content">
       <div className="report-topbar"><span>팀 협업 성향 분석</span><div><button onClick={() => window.print()}>↓ PDF 내보내기</button></div></div>
@@ -158,12 +158,8 @@ export default function App() {
         <div className="panel-hd"><span className="tag">INPUT</span><h2>팀 구성</h2></div>
 
         <div className="goal-row">
-          <span className="field-label">팀 목표</span>
-          <div className="chips">
-            {GOALS.map((g) => (
-              <button key={g} className={`chip ${goal === g ? "chip-on" : ""}`} onClick={() => setGoal(g)}>{g}</button>
-            ))}
-          </div>
+          <label className="field-label">팀 목표 <input className="context-input" value={goal} maxLength={120} placeholder="예: 3개월 안에 고객용 모바일 서비스를 출시하고 초기 사용자를 확보합니다." onChange={(e) => setGoal(e.target.value)} /></label>
+          <p className="goal-help">달성하려는 결과와 기한, 성공 기준을 구체적으로 적어주세요. AI가 이 목표를 중심으로 분석합니다.</p>
         </div>
 
         <div className="context-fields">
@@ -209,7 +205,7 @@ export default function App() {
           <button className="btn-ghost" disabled={members.length >= 10} onClick={() => setMembers((ms) => [...ms, { id: ++uid, name: "", type: "", birthDate: "", birthTime: "", birthCalendar: "solar", gender: "unknown" }])}>
             팀원 추가 {members.length >= 10 && "(최대 10명)"}
           </button>
-          <button className="btn-main" disabled={!ready || !teamName.trim() || purpose.trim().length < 20 || llm.loading} onClick={run}>
+          <button className="btn-main" disabled={!ready || !teamName.trim() || !goal.trim() || purpose.trim().length < 20 || llm.loading} onClick={run}>
             {llm.loading ? "분석하는 중…" : "팀 케미 분석하기"}
           </button>
         </div>
