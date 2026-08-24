@@ -144,7 +144,7 @@ export default function App() {
         <div className="report-sidebar-bottom"><span>ⓘ 분석 기준 및 면책</span><button onClick={run} disabled={!ready || !teamName.trim() || purpose.trim().length < 20 || llm.loading}>분석 종합 완료</button></div>
       </aside>
       <div className="report-content">
-      <div className="report-topbar"><span>팀 협업 성향 분석</span><div><span>개요</span><span>인사이트</span><span>조직 리포트</span><button>↓ PDF 내보내기</button></div></div>
+      <div className="report-topbar"><span>팀 협업 성향 분석</span><div><button onClick={() => window.print()}>↓ PDF 내보내기</button></div></div>
       <header className="hd">
         <div className="hd-eyebrow">TEAM VIBE / 성분 분석 시트</div>
         <h1 className="hd-title">MBTI 팀 케미 분석기</h1>
