@@ -4,6 +4,7 @@ import { shareEnabled, makeSlug, saveShare, loadShare } from "./lib/supabase.js"
 import "./styles.css";
 
 const GOALS = ["신규 프로젝트 착수", "일상 협업 개선", "아이디어 회의 활성화", "팀 빌딩 / 상견례", "성과 부진 회복"];
+const TODAY = new Date().toISOString().slice(0, 10);
 
 let uid = 100;
 const seed = [
@@ -138,7 +139,7 @@ export default function App() {
         <div className="report-brand">COLLABORATION<br /><b>PROPENSITY ANALYSIS</b></div>
         <div className="report-id">REPORT ID · TEAM VIBE</div>
         <nav className="report-nav">
-          {[['chem','01','팀 개요'],['chem','02','팀 인사이트'],['pair','03','케미 지표'],['chem','04','핵심 강점'],['chem','05','잠재 갈등'],['role','06','개인별 기여'],['chem','07','액션 플랜']].map(([key,num,label]) => (
+          {[['chem','01','팀 개요'],['pair','02','케미 지표'],['chem','03','핵심 강점'],['chem','04','잠재 갈등'],['role','05','개인별 기여'],['chem','06','액션 플랜']].map(([key,num,label]) => (
             <button key={num} className={`report-nav-item ${result && tab === key ? 'active' : ''}`} onClick={() => { setTab(key); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><span>{num}</span>{label}</button>
           ))}
         </nav>
@@ -183,7 +184,7 @@ export default function App() {
                 {m.type && <em>{TYPE_META[m.type].nick}</em>}
               </button>
               <input className="in-note" value={m.note || ""} placeholder="업무 스타일·고민·강점 (선택)" onChange={(e) => update(m.id, { note: e.target.value })} />
-              <div className="saju-fields"><span>사주 참고</span><input type="date" value={m.birthDate || ""} onChange={(e) => update(m.id, { birthDate: e.target.value })} /><input type="time" value={m.birthTime || ""} onChange={(e) => update(m.id, { birthTime: e.target.value })} /><select value={m.birthCalendar || "solar"} onChange={(e) => update(m.id, { birthCalendar: e.target.value })}><option value="solar">양력</option><option value="lunar">음력</option></select><select value={m.gender || "unknown"} onChange={(e) => update(m.id, { gender: e.target.value })}><option value="unknown">성별 미입력</option><option value="male">남성</option><option value="female">여성</option></select></div>
+              <div className="saju-fields"><span>사주 참고</span><input type="date" min="1950-01-01" max={TODAY} value={m.birthDate || ""} aria-label={`${m.name || "팀원"} 생년월일`} onChange={(e) => update(m.id, { birthDate: e.target.value })} /><input type="time" value={m.birthTime || ""} aria-label={`${m.name || "팀원"} 생시`} onChange={(e) => update(m.id, { birthTime: e.target.value })} /><select value={m.birthCalendar || "solar"} onChange={(e) => update(m.id, { birthCalendar: e.target.value })}><option value="solar">양력</option><option value="lunar">음력</option></select><select value={m.gender || "unknown"} onChange={(e) => update(m.id, { gender: e.target.value })}><option value="unknown">성별 미입력</option><option value="male">남성</option><option value="female">여성</option></select></div>
               <button className="x" onClick={() => setMembers((ms) => ms.filter((x) => x.id !== m.id))} aria-label="팀원 삭제">✕</button>
 
               {picking === m.id && (
