@@ -127,6 +127,9 @@ export default function App() {
   }, [result, simType]);
 
   const update = (id, patch) => setMembers((ms) => ms.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+  const displayedConflicts = llm.c?.conflicts?.length
+    ? llm.c.conflicts
+    : (result?.conflicts || []).map((c) => ({ title: c.title, scenario: c.why, why: "규칙 기반 참고 신호", advice: c.fix }));
 
   return (
     <div className="sheet">
@@ -276,18 +279,18 @@ export default function App() {
               )}
 
               <div className="panel-hd mt"><span className="tag">03</span><h2>잠재 갈등 포인트</h2></div>
-              {result.conflicts.length === 0 && <p className="lead">규칙표상 뚜렷한 갈등 신호는 감지되지 않았어요. 균형이 좋은 편입니다.</p>}
+              <p className="lead">팀 목표와 상황, 각 팀원의 MBTI·직무·업무 스타일을 AI가 종합해 만든 협업 시나리오입니다.</p>
+              {displayedConflicts.length === 0 && <p className="lead">현재 입력을 기준으로 뚜렷한 갈등 가능성이 발견되지 않았어요.</p>}
               <div className="conf-list">
-                {result.conflicts.map((c, i) => {
-                  const ai = llm.c?.conflicts?.find((x) => x.title === c.title);
-                  return (
+                {displayedConflicts.map((c, i) => (
                     <div className="conf" key={i}>
                       <div className="conf-hd"><span className="conf-n">{String(i + 1).padStart(2, "0")}</span><h4>{c.title}</h4></div>
-                      <p className="conf-why">{c.why}</p>
-                      <p className="conf-fix"><span>해결</span>{ai?.advice || c.fix}</p>
+                      {c.people && <p className="conf-people">관련 · {c.people}</p>}
+                      <p className="conf-why">{c.scenario}</p>
+                      {c.why && <p className="conf-reason">배경 · {c.why}</p>}
+                      <p className="conf-fix"><span>해결</span>{c.advice}</p>
                     </div>
-                  );
-                })}
+                ))}
               </div>
 
               <div className="panel-hd mt"><span className="tag">04</span><h2>이 팀에 필요한 유형</h2></div>
