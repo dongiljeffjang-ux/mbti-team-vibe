@@ -262,6 +262,13 @@ export default function App() {
                       <div className="card" key={i}><h4>{s.title}</h4><p>{s.detail}</p></div>
                     ))}
                   </div>
+                  {llm.s.memberInsights?.length > 0 && (
+                    <div className="member-insights">
+                      {llm.s.memberInsights.map((m, i) => (
+                        <div className="member-insight" key={i}><h4>{m.name}</h4><p>{m.contribution}</p><small>협업 포인트 · {m.watchout}</small></div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
 
