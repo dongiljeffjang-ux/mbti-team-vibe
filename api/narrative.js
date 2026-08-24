@@ -61,9 +61,10 @@ async function ask(prompt) {
   }
   const data = await res.json();
   const parsed = JSON.parse(data.output_text || "{}");
-  if (!parsed.summary || !Array.isArray(parsed.strengths) || !Array.isArray(parsed.memberInsights)) {
+  if (!parsed.summary || !Array.isArray(parsed.strengths)) {
     throw new Error("OpenAI 응답 형식이 올바르지 않습니다.");
   }
+  parsed.memberInsights = Array.isArray(parsed.memberInsights) ? parsed.memberInsights : [];
   return parsed;
 }
 
@@ -124,7 +125,7 @@ export default async function handler(req, res) {
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 2, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note]) }))
+    .update(JSON.stringify({ v: 3, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note]) }))
     .digest("hex");
 
   if (admin) {
