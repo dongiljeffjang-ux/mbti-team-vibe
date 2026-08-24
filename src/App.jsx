@@ -7,10 +7,10 @@ const GOALS = ["신규 프로젝트 착수", "일상 협업 개선", "아이디�
 
 let uid = 100;
 const seed = [
-  { id: 1, name: "김지훈", type: "ENFP", role: "기획 리드", note: "새로운 아이디어를 빠르게 제안하는 편" },
-  { id: 2, name: "이수민", type: "ISTJ", role: "개발", note: "일정과 품질 기준을 꼼꼼히 챙김" },
-  { id: 3, name: "박도연", type: "INTJ", role: "데이터 분석", note: "논리적인 근거를 바탕으로 판단" },
-  { id: 4, name: "최민재", type: "ESFJ", role: "고객 커뮤니케이션", note: "팀 분위기와 고객 반응을 잘 살핌" },
+  { id: 1, name: "김지훈", type: "ENFP", role: "기획 리드", note: "새로운 아이디어를 빠르게 제안하는 편", birthDate: "", birthTime: "", birthCalendar: "solar", gender: "unknown" },
+  { id: 2, name: "이수민", type: "ISTJ", role: "개발", note: "일정과 품질 기준을 꼼꼼히 챙김", birthDate: "", birthTime: "", birthCalendar: "solar", gender: "unknown" },
+  { id: 3, name: "박도연", type: "INTJ", role: "데이터 분석", note: "논리적인 근거를 바탕으로 판단", birthDate: "", birthTime: "", birthCalendar: "solar", gender: "unknown" },
+  { id: 4, name: "최민재", type: "ESFJ", role: "고객 커뮤니케이션", note: "팀 분위기와 고객 반응을 잘 살핌", birthDate: "", birthTime: "", birthCalendar: "solar", gender: "unknown" },
 ];
 
 function Tile({ type, index, name, size = "md", onClick, active }) {
@@ -68,7 +68,7 @@ export default function App() {
       const res = await fetch("/api/narrative", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ teamName, goal, purpose, members: list.map((m) => ({ name: m.name, type: m.type, role: m.role, note: m.note })) }),
+        body: JSON.stringify({ teamName, goal, purpose, members: list.map((m) => ({ name: m.name, type: m.type, role: m.role, note: m.note, birthDate: m.birthDate, birthTime: m.birthTime, birthCalendar: m.birthCalendar, gender: m.gender })) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" · ") || `HTTP ${res.status}`);
@@ -170,6 +170,7 @@ export default function App() {
           <span className="context-count">{purpose.length}/1200</span>
         </div>
 
+          <p className="saju-note">사주 참고 분석은 선택 사항입니다. 생년월일과 생시를 입력한 팀원만 전통 명리학 기반 참고 해석에 포함됩니다.</p>
         <div className="roster">
           {members.map((m, i) => (
             <div className="roster-row" key={m.id}>
@@ -181,6 +182,7 @@ export default function App() {
                 {m.type && <em>{TYPE_META[m.type].nick}</em>}
               </button>
               <input className="in-note" value={m.note || ""} placeholder="업무 스타일·고민·강점 (선택)" onChange={(e) => update(m.id, { note: e.target.value })} />
+              <div className="saju-fields"><span>사주 참고</span><input type="date" value={m.birthDate || ""} onChange={(e) => update(m.id, { birthDate: e.target.value })} /><input type="time" value={m.birthTime || ""} onChange={(e) => update(m.id, { birthTime: e.target.value })} /><select value={m.birthCalendar || "solar"} onChange={(e) => update(m.id, { birthCalendar: e.target.value })}><option value="solar">양력</option><option value="lunar">음력</option></select><select value={m.gender || "unknown"} onChange={(e) => update(m.id, { gender: e.target.value })}><option value="unknown">성별 미입력</option><option value="male">남성</option><option value="female">여성</option></select></div>
               <button className="x" onClick={() => setMembers((ms) => ms.filter((x) => x.id !== m.id))} aria-label="팀원 삭제">✕</button>
 
               {picking === m.id && (
@@ -202,7 +204,7 @@ export default function App() {
         </div>
 
         <div className="actions">
-          <button className="btn-ghost" disabled={members.length >= 10} onClick={() => setMembers((ms) => [...ms, { id: ++uid, name: "", type: "" }])}>
+          <button className="btn-ghost" disabled={members.length >= 10} onClick={() => setMembers((ms) => [...ms, { id: ++uid, name: "", type: "", birthDate: "", birthTime: "", birthCalendar: "solar", gender: "unknown" }])}>
             팀원 추가 {members.length >= 10 && "(최대 10명)"}
           </button>
           <button className="btn-main" disabled={!ready || !teamName.trim() || purpose.trim().length < 20 || llm.loading} onClick={run}>
@@ -287,6 +289,7 @@ export default function App() {
                       ))}
                     </div>
                   )}
+                  {(llm.s.sajuSummary || llm.s.sajuInsights?.length > 0) && <div className="saju-report"><div className="section-kicker">SAJU REFERENCE · 전통 명리학 참고</div><p className="lead">{llm.s.sajuSummary}</p>{llm.s.sajuInsights?.map((m, i) => <div className="saju-insight" key={i}><h4>{m.name} <small>{m.dayMaster}</small></h4><p>{m.elementSummary}</p><small>협업 적용 · {m.collaboration}</small></div>)}<p className="disclaimer">※ 사주 해석은 입력된 출생 정보의 만세력 결과와 표면 오행 분포를 바탕으로 한 문화적 참고 정보이며, 과학적 진단이나 미래 예측이 아닙니다.</p></div>}
                 </>
               )}
 
@@ -499,3 +502,4 @@ export default function App() {
     </div>
   );
 }
+
