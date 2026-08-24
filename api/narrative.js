@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { analyze, ALL_TYPES, TYPE_META, AXIS_LIST } from "../lib/rules.js";
+import { calculateFourPillars } from "manseryeok";
 
 /* ───────────────────────────────────────────────────────────────
    /api/narrative
@@ -21,12 +22,25 @@ const admin =
 
 const STYLE = `한국어 해요체. 각 문장 60자 이내. 과장·점술식 표현 금지. MBTI를 단정적 성격 규정이 아니라 "협업 경향"으로 서술. 팀 목표에 맞춘 실무적 조언.`;
 
+const STEM_ELEMENTS = { 갑: "목", 을: "목", 병: "화", 정: "화", 무: "토", 기: "토", 경: "금", 신: "금", 임: "수", 계: "수" };
+const BRANCH_ELEMENTS = { 자: "수", 축: "토", 인: "목", 묘: "목", 진: "토", 사: "화", 오: "화", 미: "토", 신: "금", 유: "금", 술: "토", 해: "수" };
+function buildSajuProfile(m) {
+  if (!m.birthDate || !m.birthTime) return null;
+  const d = m.birthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/), t = m.birthTime.match(/^(\d{2}):(\d{2})$/);
+  if (!d || !t) return null;
+  const calc = calculateFourPillars({ year: +d[1], month: +d[2], day: +d[3], hour: +t[1], minute: +t[2], isLunar: m.birthCalendar === "lunar", gender: ["male", "female"].includes(m.gender) ? m.gender : undefined });
+  const pillars = calc.toObject(), counts = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
+  Object.values(pillars).forEach((p) => [...p].forEach((c, i) => { const e = i === 0 ? STEM_ELEMENTS[c] : BRANCH_ELEMENTS[c]; if (e) counts[e] += 1; }));
+  const max = Math.max(...Object.values(counts));
+  return { pillars, hanja: calc.toHanjaString(), dayMaster: calc.dayElement?.stem, dayMasterYinYang: calc.dayYinYang?.stem, elementCounts: counts, dominantElements: Object.keys(counts).filter((e) => counts[e] === max), tenGods: calc.tenGods };
+}
+
 function buildContext(members, goal, purpose, teamName, r) {
   return {
     팀이름: teamName,
     팀목표: goal,
     팀상황과목적: purpose,
-    팀원: members.map((m) => ({ 이름: m.name, MBTI: m.type, 역할: m.role, 업무스타일: m.note, 별칭: TYPE_META[m.type].nick })),
+    팀원: members.map((m) => ({ 이름: m.name, MBTI: m.type, 역할: m.role, 업무스타일: m.note, 별칭: TYPE_META[m.type].nick, 사주참고: m.saju })),
     팀코드: r.code,
     팀유형: r.teamType.name,
     케미점수: r.chemistry,
@@ -72,7 +86,7 @@ const strengthsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀의 
 
 ${JSON.stringify(ctx, null, 2)}
 
-${STYLE}
+${STYLE} 사주참고가 있으면 일간·오행 분포·십신을 근거로 "화(火)가 상대적으로 강한 편"처럼 전문적으로 표현하되, 표면 오행 분포에 기반한 참고 해석임을 밝혀라. 사주가 성격·성과를 결정한다고 말하지 마라.
 
 JSON만 출력. 마크다운·설명 금지.
 {"summary":"팀 목표를 고려한 전체 협업 전망 2~3문장","strengths":[{"title":"6자 이내 제목","detail":"팀 목표에 어떻게 기여하는지 포함한 2문장"},{"title":"","detail":""},{"title":"","detail":""}],"memberInsights":[{"name":"팀원 이름","contribution":"현재 역할과 강점을 팀 목표에 연결한 2문장","watchout":"이 팀에서 협업할 때 주의할 점 1문장"}],"pairTip":"최고궁합 두 사람을 이 팀의 어떤 업무에 붙이면 좋은지 1문장"}`;
@@ -99,6 +113,9 @@ function validate(body) {
     if (typeof m.name !== "string" || m.name.length > 20) return "이름은 20자 이내여야 합니다.";
     if (typeof m.role !== "string" || m.role.length > 60) return "역할은 60자 이내여야 합니다.";
     if (typeof m.note !== "string" || m.note.length > 300) return "업무 스타일은 300자 이내여야 합니다.";
+    if ((m.birthDate || m.birthTime) && (!/^\d{4}-\d{2}-\d{2}$/.test(m.birthDate || "") || !/^\d{2}:\d{2}$/.test(m.birthTime || ""))) return "사주 분석에는 생년월일과 생시를 모두 입력해 주세요.";
+    if (m.birthCalendar && !["solar", "lunar"].includes(m.birthCalendar)) return "달력 유형이 올바르지 않습니다.";
+    if (m.gender && !["unknown", "male", "female"].includes(m.gender)) return "성별 값이 올바르지 않습니다.";
   }
   return null;
 }
@@ -116,7 +133,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "OPENAI_API_KEY 환경변수가 없습니다." });
   }
 
-  const members = body.members.map((m, i) => ({ id: i, name: m.name?.trim() || `팀원 ${i + 1}`, type: m.type, role: m.role?.trim() || "미정", note: m.note?.trim() || "" }));
+  const members = body.members.map((m, i) => ({ id: i, name: m.name?.trim() || `팀원 ${i + 1}`, type: m.type, role: m.role?.trim() || "미정", note: m.note?.trim() || "", birthDate: m.birthDate || "", birthTime: m.birthTime || "", birthCalendar: m.birthCalendar || "solar", gender: m.gender || "unknown" }));
+  members.forEach((m) => { m.saju = buildSajuProfile(m); });
   const goal = body.goal.trim();
   const purpose = body.purpose.trim();
   const teamName = body.teamName.trim();
@@ -127,7 +145,7 @@ export default async function handler(req, res) {
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 5, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note]) }))
+    .update(JSON.stringify({ v: 6, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
     .digest("hex");
 
   if (admin) {
@@ -147,6 +165,8 @@ export default async function handler(req, res) {
     if (!strengths.summary || !Array.isArray(strengths.strengths)) throw new Error("강점 응답 형식이 올바르지 않습니다.");
     if (!Array.isArray(conflicts.conflicts) || !Array.isArray(conflicts.tips) || !conflicts.scenarios?.conflict || !conflicts.scenarios?.synergy) throw new Error("갈등 응답 형식이 올바르지 않습니다.");
     strengths.memberInsights = Array.isArray(strengths.memberInsights) ? strengths.memberInsights : [];
+    strengths.sajuSummary = strengths.sajuSummary || "입력된 생년월일·생시가 없어 사주 참고 해석을 제공하지 않습니다.";
+    strengths.sajuInsights = Array.isArray(strengths.sajuInsights) ? strengths.sajuInsights : [];
     const payload = { strengths, conflicts };
 
     if (admin) {
@@ -161,3 +181,4 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "해설 생성에 실패했습니다.", detail: String(e.message).slice(0, 200) });
   }
 }
+
