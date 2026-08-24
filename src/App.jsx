@@ -132,7 +132,19 @@ export default function App() {
     : (result?.conflicts || []).map((c) => ({ title: c.title, scenario: c.why, why: "규칙 기반 참고 신호", advice: c.fix }));
 
   return (
-    <div className="sheet">
+    <div className="sheet report-shell">
+      <aside className="report-sidebar">
+        <div className="report-brand">COLLABORATION<br /><b>PROPENSITY ANALYSIS</b></div>
+        <div className="report-id">REPORT ID · TEAM VIBE</div>
+        <nav className="report-nav">
+          {[['chem','01','팀 개요'],['chem','02','팀 인사이트'],['pair','03','케미 지표'],['chem','04','핵심 강점'],['chem','05','잠재 갈등'],['role','06','개인별 기여'],['chem','07','액션 플랜']].map(([key,num,label]) => (
+            <button key={num} className={`report-nav-item ${result && tab === key ? 'active' : ''}`} onClick={() => { setTab(key); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><span>{num}</span>{label}</button>
+          ))}
+        </nav>
+        <div className="report-sidebar-bottom"><span>ⓘ 분석 기준 및 면책</span><button onClick={run} disabled={!ready || !teamName.trim() || purpose.trim().length < 20 || llm.loading}>분석 종합 완료</button></div>
+      </aside>
+      <div className="report-content">
+      <div className="report-topbar"><span>팀 협업 성향 분석</span><div><span>개요</span><span>인사이트</span><span>조직 리포트</span><button>↓ PDF 내보내기</button></div></div>
       <header className="hd">
         <div className="hd-eyebrow">TEAM VIBE / 성분 분석 시트</div>
         <h1 className="hd-title">MBTI 팀 케미 분석기</h1>
@@ -474,6 +486,7 @@ export default function App() {
           </footer>
         </>
       )}
+      </div>
     </div>
   );
 }
