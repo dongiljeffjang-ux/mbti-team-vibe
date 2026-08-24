@@ -77,14 +77,16 @@ ${STYLE}
 JSON만 출력. 마크다운·설명 금지.
 {"summary":"팀 목표를 고려한 전체 협업 전망 2~3문장","strengths":[{"title":"6자 이내 제목","detail":"팀 목표에 어떻게 기여하는지 포함한 2문장"},{"title":"","detail":""},{"title":"","detail":""}],"memberInsights":[{"name":"팀원 이름","contribution":"현재 역할과 강점을 팀 목표에 연결한 2문장","watchout":"이 팀에서 협업할 때 주의할 점 1문장"}],"pairTip":"최고궁합 두 사람을 이 팀의 어떤 업무에 붙이면 좋은지 1문장"}`;
 
-const conflictsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀 분석 결과에서 감지된 갈등 신호를 팀의 실제 목적과 상황에 맞는 실무 조언으로 풀어라. 숫자는 바꾸지 마라.
+const conflictsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀의 목표, 현재 상황, 각 팀원의 MBTI 협업 경향, 역할과 업무 스타일을 종합해 실제로 생길 수 있는 잠재 갈등 시나리오를 새로 작성해라.
+
+코드가 감지한 갈등 신호는 참고 자료일 뿐이다. 제목이나 문장을 그대로 복사하지 말고, 누가 어떤 업무 장면에서 왜 부딪힐 수 있는지 팀 맥락에 맞춰 구체화해라. MBTI만으로 사람을 단정하지 말고 가능성으로 표현해라. 갈등이 거의 없다면 억지로 만들지 말고 협업 리스크 1~2개만 제시해라.
 
 ${JSON.stringify(ctx, null, 2)}
 
 ${STYLE}
 
 JSON만 출력. 마크다운·설명 금지.
-{"conflicts":[{"title":"감지된갈등신호 중 하나 그대로","advice":"당장 이번 주에 실행 가능한 해결책 1~2문장"}],"tips":["협업 팁 1문장","협업 팁 1문장","협업 팁 1문장"]}`;
+{"conflicts":[{"title":"팀 상황에 맞는 갈등 제목","people":"관련 팀원 이름 또는 역할","scenario":"갈등이 나타날 수 있는 실제 업무 장면 1~2문장","why":"MBTI 경향·직무·개인 서술을 연결한 이유 1~2문장","advice":"팀 목표 달성을 위해 이번 주 실행할 해결책 1~2문장"}],"tips":["팀 목표에 맞는 협업 규칙 1문장","협업 규칙 1문장","협업 규칙 1문장"]}`;
 
 function validate(body) {
   const { teamName, goal, purpose, members } = body || {};
@@ -125,7 +127,7 @@ export default async function handler(req, res) {
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 3, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note]) }))
+    .update(JSON.stringify({ v: 4, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note]) }))
     .digest("hex");
 
   if (admin) {
