@@ -35,12 +35,13 @@ function buildSajuProfile(m) {
   return { pillars, hanja: calc.toHanjaString(), dayMaster: calc.dayElement?.stem, dayMasterYinYang: calc.dayYinYang?.stem, elementCounts: counts, dominantElements: Object.keys(counts).filter((e) => counts[e] === max), tenGods: calc.tenGods };
 }
 
-function buildContext(members, goal, purpose, teamName, industry, leadership, r) {
+function buildContext(members, goal, purpose, teamName, industry, companyCulture, leadership, r) {
   return {
     팀이름: teamName,
     팀목표: goal,
     팀상황과목적: purpose,
     업종: industry,
+    회사문화: companyCulture,
     리더십방식: leadership,
     팀원: members.map((m) => ({ 이름: m.name, MBTI: m.type, 역할: m.role, 업무스타일: m.note, 별칭: TYPE_META[m.type].nick, 사주참고: m.saju })),
     팀코드: r.code,
@@ -105,11 +106,12 @@ JSON만 출력. 마크다운·설명 금지.
 {"conflicts":[{"title":"팀 상황에 맞는 갈등 제목","people":"관련 팀원 이름 또는 역할","scenario":"갈등이 나타날 수 있는 실제 업무 장면 1~2문장","why":"MBTI 경향·직무·개인 서술을 연결한 이유 1~2문장","advice":"팀 목표 달성을 위해 이번 주 실행할 해결책 1~2문장"}],"scenarios":{"conflict":{"title":"갈등이 가장 커질 수 있는 순간","when":"갈등이 불거질 업무 조건","case":"실제 팀에서 벌어질 법한 사례 2~3문장","reading":"각 팀원이 다르게 반응하는 이유 1~2문장","move":"팀 목표를 지키기 위한 대응 행동 1~2문장"},"synergy":{"title":"시너지가 가장 크게 나는 순간","when":"팀 강점이 동시에 작동하는 업무 조건","case":"실제 팀에서 벌어질 법한 성공 사례 2~3문장","reading":"각 팀원의 강점이 어떻게 연결되는지 1~2문장","move":"이 시너지를 재현하기 위한 운영 방법 1~2문장"}},"tips":["팀 목표에 맞는 협업 규칙 1문장","협업 규칙 1문장","협업 규칙 1문장"]}`;
 
 function validate(body) {
-  const { teamName, goal, purpose, industry, leadership, members } = body || {};
+  const { teamName, goal, purpose, industry, companyCulture, leadership, members } = body || {};
   if (typeof teamName !== "string" || !teamName.trim() || teamName.length > 80) return "팀 이름이 올바르지 않습니다.";
   if (typeof goal !== "string" || !goal.trim() || goal.length > 80) return "팀 목표가 올바르지 않습니다.";
   if (typeof purpose !== "string" || purpose.trim().length < 20 || purpose.length > 1200) return "팀 목적과 상황을 20자 이상 1200자 이하로 입력해 주세요.";
   if (typeof industry !== "string" || !industry.trim() || industry.length > 40) return "업종을 선택해 주세요.";
+  if (typeof companyCulture !== "string" || !companyCulture.trim() || companyCulture.length > 60) return "회사 문화를 선택해 주세요.";
   if (typeof leadership !== "string" || !leadership.trim() || leadership.length > 60) return "리더십 방식을 선택해 주세요.";
   if (!Array.isArray(members) || members.length < 2 || members.length > 10) return "팀원은 2명 이상 10명 이하여야 합니다.";
   for (const m of members) {
@@ -143,15 +145,16 @@ export default async function handler(req, res) {
   const purpose = body.purpose.trim();
   const teamName = body.teamName.trim();
   const industry = body.industry.trim();
+  const companyCulture = body.companyCulture.trim();
   const leadership = body.leadership.trim();
 
   // 클라이언트가 보낸 숫자는 쓰지 않는다. 서버에서 다시 계산한다.
   const r = analyze(members);
-  const ctx = buildContext(members, goal, purpose, teamName, industry, leadership, r);
+  const ctx = buildContext(members, goal, purpose, teamName, industry, companyCulture, leadership, r);
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 9, model: MODEL, teamName, goal, purpose, industry, leadership, members: members.map((m) => [m.name, m.type, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
+    .update(JSON.stringify({ v: 10, model: MODEL, teamName, goal, purpose, industry, companyCulture, leadership, members: members.map((m) => [m.name, m.type, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
     .digest("hex");
 
   if (admin) {
