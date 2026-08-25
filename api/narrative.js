@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { analyze, ALL_TYPES, TYPE_META, AXIS_LIST } from "../lib/rules.js";
+import { analyze, ALL_TYPES, TYPE_META, AXIS_LIST, axesFromType, typeFromAxes } from "../lib/rules.js";
 import { calculateFourPillars } from "manseryeok";
 
 /* ───────────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ function buildContext(members, goal, purpose, teamName, industry, companyCulture
     업종: industry,
     회사문화: companyCulture,
     리더십방식: leadership,
-    팀원: members.map((m) => ({ 이름: m.name, MBTI: m.type, 역할: m.role, 업무스타일: m.note, 별칭: TYPE_META[m.type].nick, 사주참고: m.saju })),
+    팀원: members.map((m) => ({ 이름: m.name, MBTI: m.type, 성향강도: m.axes, 역할: m.role, 업무스타일: m.note, 별칭: TYPE_META[m.type].nick, 사주참고: m.saju })),
     팀코드: r.code,
     팀유형: r.teamType.name,
     케미점수: r.chemistry,
@@ -116,6 +116,7 @@ function validate(body) {
   if (!Array.isArray(members) || members.length < 2 || members.length > 10) return "팀원은 2명 이상 10명 이하여야 합니다.";
   for (const m of members) {
     if (!ALL_TYPES.includes(m?.type)) return `알 수 없는 MBTI 유형: ${m?.type}`;
+    if (m.axes && (!['ei','sn','tf','jp'].every((key) => Number.isFinite(Number(m.axes[key])) && Number(m.axes[key]) >= 0 && Number(m.axes[key]) <= 100))) return "MBTI 성향값은 0에서 100 사이여야 합니다.";
     if (typeof m.name !== "string" || m.name.length > 20) return "이름은 20자 이내여야 합니다.";
     if (typeof m.role !== "string" || m.role.length > 60) return "역할은 60자 이내여야 합니다.";
     if (typeof m.note !== "string" || m.note.length > 300) return "업무 스타일은 300자 이내여야 합니다.";
@@ -139,7 +140,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "OPENAI_API_KEY 환경변수가 없습니다." });
   }
 
-  const members = body.members.map((m, i) => ({ id: i, name: m.name?.trim() || `팀원 ${i + 1}`, type: m.type, role: m.role?.trim() || "미정", note: m.note?.trim() || "", birthDate: m.birthDate || "", birthTime: m.birthTime || "", birthCalendar: m.birthCalendar || "solar", gender: m.gender || "unknown" }));
+  const members = body.members.map((m, i) => { const axes = m.axes && typeof m.axes === "object" ? { ei: Number(m.axes.ei), sn: Number(m.axes.sn), tf: Number(m.axes.tf), jp: Number(m.axes.jp) } : axesFromType(m.type); return { id: i, name: m.name?.trim() || `팀원 ${i + 1}`, type: typeFromAxes(axes), axes, role: m.role?.trim() || "미정", note: m.note?.trim() || "", birthDate: m.birthDate || "", birthTime: m.birthTime || "", birthCalendar: m.birthCalendar || "solar", gender: m.gender || "unknown" }; });
   members.forEach((m) => { m.saju = buildSajuProfile(m); });
   const goal = body.goal.trim();
   const purpose = body.purpose.trim();
@@ -154,7 +155,7 @@ export default async function handler(req, res) {
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 10, model: MODEL, teamName, goal, purpose, industry, companyCulture, leadership, members: members.map((m) => [m.name, m.type, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
+    .update(JSON.stringify({ v: 11, model: MODEL, teamName, goal, purpose, industry, companyCulture, leadership, members: members.map((m) => [m.name, m.type, m.axes, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
     .digest("hex");
 
   if (admin) {
