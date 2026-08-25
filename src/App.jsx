@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { analyze, analyzeCore, axisScores, dimRatios, TYPE_META, GROUPS, AXIS_LIST, AXIS_VAR, AXIS_ROLE } from "../lib/rules.js";
+import { analyze, analyzeCore, axisScores, dimRatios, TYPE_META, GROUPS, AXIS_LIST, AXIS_VAR, AXIS_ROLE, MBTI_SLIDER_AXES, axesFromType, typeFromAxes } from "../lib/rules.js";
 import { shareEnabled, makeSlug, saveShare, loadShare } from "./lib/supabase.js";
 import "./styles.css";
 
@@ -51,7 +51,6 @@ export default function App() {
   const [leadership, setLeadership] = useState("");
   const [purpose, setPurpose] = useState("");
   const [members, setMembers] = useState(seed);
-  const [picking, setPicking] = useState(null);
   const [result, setResult] = useState(null);
   const [llm, setLlm] = useState({ loading: false, s: null, c: null, error: null });
   const [tab, setTab] = useState("chem");
@@ -64,7 +63,7 @@ export default function App() {
   const hasSajuInput = result?.members?.some((m) => m.birthDate && m.birthTime);
 
   const run = useCallback(async () => {
-    const list = valid.map((m, i) => ({ ...m, name: m.name?.trim() || `팀원 ${i + 1}`, role: m.role?.trim() || "미정", note: m.note?.trim() || "" }));
+    const list = valid.map((m, i) => { const axes = m.axes || axesFromType(m.type); return { ...m, axes, type: typeFromAxes(axes), name: m.name?.trim() || `팀원 ${i + 1}`, role: m.role?.trim() || "미정", note: m.note?.trim() || "" }; });
     const r = analyze(list);
     setResult({ ...r, members: list });
     setTab("chem");
@@ -76,7 +75,7 @@ export default function App() {
       const res = await fetch("/api/narrative", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ teamName, goal, purpose, industry, companyCulture, leadership, members: list.map((m) => ({ name: m.name, type: m.type, role: m.role, note: m.note, birthDate: m.birthDate, birthTime: m.birthTime, birthCalendar: m.birthCalendar, gender: m.gender })) }),
+        body: JSON.stringify({ teamName, goal, purpose, industry, companyCulture, leadership, members: list.map((m) => ({ name: m.name, type: m.type, axes: m.axes, role: m.role, note: m.note, birthDate: m.birthDate, birthTime: m.birthTime, birthCalendar: m.birthCalendar, gender: m.gender })) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" · ") || `HTTP ${res.status}`);
@@ -126,7 +125,7 @@ export default function App() {
       leadership,
       teamName,
       purpose,
-      members: result.members.map((m) => ({ name: m.name, type: m.type, role: m.role, note: m.note })),
+      members: result.members.map((m) => ({ name: m.name, type: m.type, axes: m.axes, role: m.role, note: m.note })),
       result: { chemistry: result.chemistry, code: result.code, teamType: result.teamType.name },
       narrative: { strengths: llm.s, conflicts: llm.c },
     });
@@ -188,28 +187,11 @@ export default function App() {
               <span className="rn">{String(i + 1).padStart(2, "0")}</span>
               <input className="in-name" value={m.name} placeholder="이름" onChange={(e) => update(m.id, { name: e.target.value })} />
               <input className="in-role" value={m.role || ""} placeholder="역할" onChange={(e) => update(m.id, { role: e.target.value })} />
-              <button className={`in-type ${m.type ? "" : "in-empty"}`} onClick={() => setPicking(picking === m.id ? null : m.id)}>
-                {m.type || "MBTI 선택"}
-                {m.type && <em>{TYPE_META[m.type].nick}</em>}
-              </button>
+              <div className="mbti-slider-summary"><b>{m.type || "MBTI"}</b><span>{m.type ? TYPE_META[m.type].nick : "4개 축을 조정하세요"}</span></div>
               <input className="in-note" value={m.note || ""} placeholder="업무 스타일·고민·강점 (선택)" onChange={(e) => update(m.id, { note: e.target.value })} />
+              <div className="mbti-sliders"><div className="slider-title">MBTI 성향 강도 <small>슬라이더 결과가 최종 MBTI가 됩니다</small></div>{MBTI_SLIDER_AXES.map((axis) => { const axes = m.axes || axesFromType(m.type || "ISTJ"); const value = Number(axes[axis.key] ?? 50); return <label className="mbti-slider" key={axis.key}><span>{axis.left}</span><input type="range" min="0" max="100" value={value} aria-label={`${m.name || "팀원"} ${axis.left}-${axis.right} 성향`} onChange={(e) => { const next = { ...axes, [axis.key]: Number(e.target.value) }; update(m.id, { axes: next, type: typeFromAxes(next) }); }} /><span>{axis.right}</span><em>{axis.left} {100 - value}% · {axis.right} {value}%</em></label>; })}</div>
               <div className="saju-fields"><span>사주 참고</span><input type="date" min="1950-01-01" max={TODAY} value={m.birthDate || ""} aria-label={`${m.name || "팀원"} 생년월일`} onChange={(e) => update(m.id, { birthDate: e.target.value })} /><input type="time" value={m.birthTime || ""} aria-label={`${m.name || "팀원"} 생시`} onChange={(e) => update(m.id, { birthTime: e.target.value })} /><select value={m.birthCalendar || "solar"} onChange={(e) => update(m.id, { birthCalendar: e.target.value })}><option value="solar">양력</option><option value="lunar">음력</option></select><select value={m.gender || "unknown"} onChange={(e) => update(m.id, { gender: e.target.value })}><option value="unknown">성별 미입력</option><option value="male">남성</option><option value="female">여성</option></select></div>
               <button className="x" onClick={() => setMembers((ms) => ms.filter((x) => x.id !== m.id))} aria-label="팀원 삭제">✕</button>
-
-              {picking === m.id && (
-                <div className="picker">
-                  {GROUPS.map((g) => (
-                    <div className="pick-row" key={g.key}>
-                      <span className="pick-lab">{g.key}<em>{g.label}</em></span>
-                      <div className="pick-tiles">
-                        {g.types.map((t) => (
-                          <Tile key={t} type={t} size="sm" active={m.type === t} onClick={() => { update(m.id, { type: t }); setPicking(null); }} />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
         </div>
