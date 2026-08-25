@@ -270,6 +270,7 @@ export default function App() {
               {llm.error && <p className="err">{llm.error}</p>}
               {llm.s && (
                 <>
+                  {llm.s.executiveInsight && <blockquote className="executive-insight">“{llm.s.executiveInsight}”</blockquote>}
                   {llm.s.organizationCulture && <div className="culture-report"><div className="culture-block"><div className="section-kicker">01 · COMPANY CULTURE</div><h3>{llm.s.organizationCulture.headline}</h3><p>{llm.s.organizationCulture.description}</p><ul>{llm.s.organizationCulture.signals?.map((item, i) => <li key={i}>{item}</li>)}</ul></div><div className="culture-block culture-team"><div className="section-kicker">02 · TEAM CULTURE</div><h3>{llm.s.teamCulture?.headline}</h3><p>{llm.s.teamCulture?.description}</p><ul>{llm.s.teamCulture?.operatingPrinciples?.map((item, i) => <li key={i}>{item}</li>)}</ul></div></div>}
                   <p className="lead">{llm.s.summary}</p>
                   <div className="cards">
