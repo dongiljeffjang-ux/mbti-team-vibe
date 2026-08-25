@@ -89,10 +89,10 @@ const strengthsPrompt = (ctx) => `너는 조직문화와 팀 협업을 분석하
 
 ${JSON.stringify(ctx, null, 2)}
 
-${STYLE} 단, executiveInsight는 이 규칙의 예외로 90~120자의 한 문장으로 작성해라. 사주참고가 있으면 일간·오행 분포·십신을 근거로 "화(火)가 상대적으로 강한 편"처럼 전문적으로 표현하되, 표면 오행 분포에 기반한 참고 해석임을 밝혀라. 각 팀원마다 MBTI와 사주를 함께 엮어, 두 참고 체계가 역할·팀 목표에서 어떤 협업 경향으로 나타날 수 있는지 별도 문장으로 설명해라. MBTI나 사주가 성격·성과를 결정한다고 말하지 마라.
+${STYLE} 단, executiveInsight는 이 규칙의 예외로 140~180자의 한 문장으로 작성해라. 사주참고가 있으면 일간·오행 분포·십신을 근거로 "화(火)가 상대적으로 강한 편"처럼 전문적으로 표현하되, 표면 오행 분포에 기반한 참고 해석임을 밝혀라. 각 팀원마다 MBTI와 사주를 함께 엮어, 두 참고 체계가 역할·팀 목표에서 어떤 협업 경향으로 나타날 수 있는지 별도 문장으로 설명해라. MBTI나 사주가 성격·성과를 결정한다고 말하지 마라.
 
 JSON만 출력. 마크다운·설명 금지.
-{"executiveInsight":"따옴표 없이 90~120자. 업종·회사문화·리더십을 한 번, 팀의 구체적 목표를 한 번, 팀의 핵심 강점 또는 긴장과 가장 중요한 협업 방향을 한 번씩 포함한 구체적인 한 문장. 추상적인 응원 문구와 범용적인 표현 금지","organizationCulture":{"headline":"업종과 리더십 방식에서 추론한 회사 조직문화 1문장","description":"회사의 의사결정·소통·성과 기준을 2~3문장으로 설명","signals":["추론 근거 1","추론 근거 2"]},"teamCulture":{"headline":"팀 목표와 목적에서 추론한 팀 문화 1문장","description":"이 팀이 형성할 가능성이 높은 협업 문화 2~3문장","operatingPrinciples":["운영 원칙 1","운영 원칙 2","운영 원칙 3"]},"summary":"팀 목표를 고려한 전체 협업 전망 2~3문장","strengths":[{"title":"6자 이내 제목","detail":"팀 목표에 어떻게 기여하는지 포함한 2문장"},{"title":"","detail":""},{"title":"","detail":""}],"memberInsights":[{"name":"팀원 이름","contribution":"현재 역할과 강점을 팀 목표에 연결한 2문장","watchout":"이 팀에서 협업할 때 주의할 점 1문장"}],"pairTip":"최고궁합 두 사람을 이 팀의 어떤 업무에 붙이면 좋은지 1문장","sajuSummary":"입력된 팀원의 일간·오행 분포를 팀 협업 관점에서 2~3문장으로 해석","sajuInsights":[{"name":"팀원 이름","dayMaster":"예: 계수(癸水)·음","elementSummary":"오행 분포 수치와 화(火) 등 상대적으로 강한 기운을 근거로 한 1~2문장","collaboration":"팀 목적과 역할에 적용한 협업 참고 1문장","mbtiSajuProfile":"이 팀원의 MBTI 협업 경향과 사주 참고 성향을 함께 엮은 개인별 설명 2~3문장"}]}`;
+{"executiveInsight":"따옴표 없이 140~180자 한 문장. 반드시 실제 팀원 이름 2명과 각자의 MBTI 또는 성향, 역할을 포함하고, 두 사람이 어떤 순서와 방식으로 협업하는지 설명해라. 팀 목표의 구체 업무를 명시하고, 마지막에 주의할 협업 포인트를 짧게 덧붙여라. 업종·회사문화·리더십은 배경으로만 압축해라. 이름만 나열하거나 '강점을 극대화한다' 같은 추상 표현, 범용 응원 문구는 금지한다.","organizationCulture":{"headline":"업종과 리더십 방식에서 추론한 회사 조직문화 1문장","description":"회사의 의사결정·소통·성과 기준을 2~3문장으로 설명","signals":["추론 근거 1","추론 근거 2"]},"teamCulture":{"headline":"팀 목표와 목적에서 추론한 팀 문화 1문장","description":"이 팀이 형성할 가능성이 높은 협업 문화 2~3문장","operatingPrinciples":["운영 원칙 1","운영 원칙 2","운영 원칙 3"]},"summary":"팀 목표를 고려한 전체 협업 전망 2~3문장","strengths":[{"title":"6자 이내 제목","detail":"팀 목표에 어떻게 기여하는지 포함한 2문장"},{"title":"","detail":""},{"title":"","detail":""}],"memberInsights":[{"name":"팀원 이름","contribution":"현재 역할과 강점을 팀 목표에 연결한 2문장","watchout":"이 팀에서 협업할 때 주의할 점 1문장"}],"pairTip":"최고궁합 두 사람을 이 팀의 어떤 업무에 붙이면 좋은지 1문장","sajuSummary":"입력된 팀원의 일간·오행 분포를 팀 협업 관점에서 2~3문장으로 해석","sajuInsights":[{"name":"팀원 이름","dayMaster":"예: 계수(癸水)·음","elementSummary":"오행 분포 수치와 화(火) 등 상대적으로 강한 기운을 근거로 한 1~2문장","collaboration":"팀 목적과 역할에 적용한 협업 참고 1문장","mbtiSajuProfile":"이 팀원의 MBTI 협업 경향과 사주 참고 성향을 함께 엮은 개인별 설명 2~3문장"}]}`;
 
 const conflictsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀의 목표, 현재 상황, 각 팀원의 MBTI 협업 경향, 역할과 업무 스타일을 종합해 실제로 생길 수 있는 잠재 갈등 시나리오를 새로 작성해라.
 
@@ -155,7 +155,7 @@ export default async function handler(req, res) {
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 13, model: MODEL, teamName, goal, purpose, industry, companyCulture, leadership, members: members.map((m) => [m.name, m.type, m.axes, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
+    .update(JSON.stringify({ v: 14, model: MODEL, teamName, goal, purpose, industry, companyCulture, leadership, members: members.map((m) => [m.name, m.type, m.axes, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
     .digest("hex");
 
   if (admin) {
