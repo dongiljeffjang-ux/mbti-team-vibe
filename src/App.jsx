@@ -129,7 +129,7 @@ export default function App() {
   }, [result, simType]);
 
   const update = (id, patch) => setMembers((ms) => ms.map((m) => (m.id === id ? { ...m, ...patch } : m)));
-  const displayedConflicts = llm.c?.conflicts?.length
+  const displayedConflicts = llm.c
     ? llm.c.conflicts
     : (result?.conflicts || []).map((c) => ({ title: c.title, scenario: c.why, why: "규칙 기반 참고 신호", advice: c.fix }));
 
@@ -292,7 +292,7 @@ export default function App() {
               )}
 
               <div className="panel-hd mt"><span className="tag">03</span><h2>잠재 갈등 포인트</h2></div>
-              <p className="lead">팀 목표와 상황, 각 팀원의 MBTI·직무·업무 스타일을 AI가 종합해 만든 협업 시나리오입니다.</p>
+              <p className="lead">팀 목표와 상황, 각 팀원의 MBTI·직무·업무 스타일을 AI가 종합해 실제 업무 장면으로 재구성한 협업 시나리오입니다.</p>
               {displayedConflicts.length === 0 && <p className="lead">현재 입력을 기준으로 뚜렷한 갈등 가능성이 발견되지 않았어요.</p>}
               <div className="conf-list">
                 {displayedConflicts.map((c, i) => (
