@@ -141,6 +141,7 @@ export default function App() {
   }, [result, simType]);
 
   const update = (id, patch) => setMembers((ms) => ms.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+  const goToReportSection = (key, target) => { setTab(key); window.setTimeout(() => document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "start" }), 80); };
   const displayedConflicts = llm.c
     ? llm.c.conflicts
     : (result?.conflicts || []).map((c) => ({ title: c.title, scenario: c.why, why: "규칙 기반 참고 신호", advice: c.fix }));
@@ -151,8 +152,8 @@ export default function App() {
         <div className="report-brand">COLLABORATION<br /><b>PROPENSITY ANALYSIS</b></div>
         <div className="report-id">REPORT ID · TEAM VIBE</div>
         <nav className="report-nav">
-          {[['chem','01','팀 개요'],['pair','02','케미 지표'],['chem','03','핵심 강점'],['chem','04','잠재 갈등'],['role','05','개인별 기여'],['chem','06','액션 플랜']].map(([key,num,label]) => (
-            <button key={num} className={`report-nav-item ${result && tab === key ? 'active' : ''}`} onClick={() => { setTab(key); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><span>{num}</span>{label}</button>
+          {[['chem','01','팀 개요','#team-overview'],['chem','02','조직·팀 문화','.culture-report'],['chem','03','케미 지표','#team-metrics'],['chem','04','잠재 갈등','.conf-list'],['role','05','개인별 분석','.role-grid'],['chem','06','액션 플랜','.tips']].map(([key,num,label,target]) => (
+            <button key={num} className={`report-nav-item ${result && tab === key ? 'active' : ''}`} onClick={() => goToReportSection(key, target)}><span>{num}</span>{label}</button>
           ))}
         </nav>
         <div className="report-sidebar-bottom"><span>ⓘ 분석 기준 및 면책</span><button onClick={run} disabled={!ready || !teamName.trim() || !goal.trim() || !industry || !companyCulture || !leadership || purpose.trim().length < 20 || llm.loading}>분석 종합 완료</button></div>
@@ -227,7 +228,7 @@ export default function App() {
       {/* ── 결과 ── */}
       {result && (
         <>
-          <section className="hero">
+          <section className="hero" id="team-overview">
             <div className="hero-tile" style={{ "--tint": `var(${AXIS_VAR[result.sorted[0]]})` }}>
               <span className="ht-eyebrow">TEAM CODE</span>
               <span className="ht-code">{result.code}</span>
@@ -256,7 +257,7 @@ export default function App() {
 
           {/* 케미 분석 */}
           {tab === "chem" && (
-            <section className="panel">
+            <section className="panel" id="team-metrics">
               <div className="panel-hd"><span className="tag">01</span><h2>강점 배합비</h2></div>
               <div className="mix">
                 <div className="mix-stack">
