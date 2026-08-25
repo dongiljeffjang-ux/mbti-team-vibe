@@ -5,6 +5,8 @@ import "./styles.css";
 
 const GOALS = ["신규 프로젝트 착수", "일상 협업 개선", "아이디어 회의 활성화", "팀 빌딩 / 상견례", "성과 부진 회복"];
 const TODAY = new Date().toISOString().slice(0, 10);
+const INDUSTRIES = ["제조업", "IT·소프트웨어", "금융·보험", "유통·커머스", "건설·엔지니어링", "바이오·헬스케어", "공공·교육", "콘텐츠·미디어", "전문 서비스", "기타"];
+const LEADERSHIP_STYLES = ["상명하복·지시형", "목표제시·자율실행형", "합의·참여형", "코칭·성장지원형", "상황대응형", "잘 모르겠음"];
 
 let uid = 100;
 const seed = [
@@ -43,6 +45,8 @@ function Bar({ label, value, colorVar, right }) {
 export default function App() {
   const [teamName, setTeamName] = useState("");
   const [goal, setGoal] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [leadership, setLeadership] = useState("");
   const [purpose, setPurpose] = useState("");
   const [members, setMembers] = useState(seed);
   const [picking, setPicking] = useState(null);
@@ -70,7 +74,7 @@ export default function App() {
       const res = await fetch("/api/narrative", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ teamName, goal, purpose, members: list.map((m) => ({ name: m.name, type: m.type, role: m.role, note: m.note, birthDate: m.birthDate, birthTime: m.birthTime, birthCalendar: m.birthCalendar, gender: m.gender })) }),
+        body: JSON.stringify({ teamName, goal, purpose, industry, leadership, members: list.map((m) => ({ name: m.name, type: m.type, role: m.role, note: m.note, birthDate: m.birthDate, birthTime: m.birthTime, birthCalendar: m.birthCalendar, gender: m.gender })) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" · ") || `HTTP ${res.status}`);
@@ -85,7 +89,7 @@ export default function App() {
     } catch (e) {
       setLlm({ loading: false, s: null, c: null, error: `해설 생성 실패 (${e.message}). 아래 계산 결과는 그대로 유효합니다.` });
     }
-  }, [members, goal, purpose, teamName]);
+  }, [members, goal, purpose, teamName, industry, leadership]);
 
   /* 공유 링크로 들어온 경우 저장된 분석을 복원한다 */
   useEffect(() => {
@@ -96,6 +100,8 @@ export default function App() {
       if (!row) return setShare({ slug: null, saving: false, error: "만료되었거나 없는 공유 링크예요." });
       setTeamName(row.team_name || "");
       setGoal(row.goal);
+      setIndustry(row.industry || "");
+      setLeadership(row.leadership || "");
       setPurpose(row.purpose || "");
       setMembers(row.members.map((m, i) => ({ ...m, id: i + 1 })));
       setResult({ ...analyze(row.members.map((m, i) => ({ ...m, id: i + 1 }))), members: row.members.map((m, i) => ({ ...m, id: i + 1 })) });
@@ -112,6 +118,8 @@ export default function App() {
     const ok = await saveShare({
       slug,
       goal,
+      industry,
+      leadership,
       teamName,
       purpose,
       members: result.members.map((m) => ({ name: m.name, type: m.type, role: m.role, note: m.note })),
@@ -119,7 +127,7 @@ export default function App() {
       narrative: { strengths: llm.s, conflicts: llm.c },
     });
     setShare(ok ? { slug, saving: false, error: null } : { slug: null, saving: false, error: "저장에 실패했어요. Supabase 설정을 확인하세요." });
-  }, [result, goal, purpose, teamName, llm]);
+  }, [result, goal, purpose, teamName, industry, leadership, llm]);
 
   const sim = useMemo(() => {
     if (!result || !simType) return null;
@@ -143,7 +151,7 @@ export default function App() {
             <button key={num} className={`report-nav-item ${result && tab === key ? 'active' : ''}`} onClick={() => { setTab(key); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><span>{num}</span>{label}</button>
           ))}
         </nav>
-        <div className="report-sidebar-bottom"><span>ⓘ 분석 기준 및 면책</span><button onClick={run} disabled={!ready || !teamName.trim() || !goal.trim() || purpose.trim().length < 20 || llm.loading}>분석 종합 완료</button></div>
+        <div className="report-sidebar-bottom"><span>ⓘ 분석 기준 및 면책</span><button onClick={run} disabled={!ready || !teamName.trim() || !goal.trim() || !industry || !leadership || purpose.trim().length < 20 || llm.loading}>분석 종합 완료</button></div>
       </aside>
       <div className="report-content">
       <div className="report-topbar"><span>팀 협업 성향 분석</span><div><button onClick={() => window.print()}>↓ PDF 내보내기</button></div></div>
@@ -164,6 +172,7 @@ export default function App() {
 
         <div className="context-fields">
           <label className="field-label">팀 이름 <input className="context-input" value={teamName} placeholder="예: 신규 서비스 TF" onChange={(e) => setTeamName(e.target.value)} /></label>
+          <div className="context-select-row"><label className="field-label">업종 <select className="context-input" value={industry} onChange={(e) => setIndustry(e.target.value)}><option value="">업종을 선택하세요</option>{INDUSTRIES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label><label className="field-label">리더십 방식 <select className="context-input" value={leadership} onChange={(e) => setLeadership(e.target.value)}><option value="">리더십 방식을 선택하세요</option>{LEADERSHIP_STYLES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label></div>
           <label className="field-label">팀이 이루려는 목적과 상황 <textarea className="context-input context-area" value={purpose} maxLength={1200} placeholder="예: 3개월 안에 고객용 모바일 서비스를 출시해야 합니다. 의사결정이 빠르고, 개발·디자인·마케팅 사이의 협업이 중요합니다. 현재는 일정 지연과 의견 충돌이 잦습니다." onChange={(e) => setPurpose(e.target.value)} /></label>
           <span className="context-count">{purpose.length}/1200</span>
         </div>
@@ -205,7 +214,7 @@ export default function App() {
           <button className="btn-ghost" disabled={members.length >= 10} onClick={() => setMembers((ms) => [...ms, { id: ++uid, name: "", type: "", birthDate: "", birthTime: "", birthCalendar: "solar", gender: "unknown" }])}>
             팀원 추가 {members.length >= 10 && "(최대 10명)"}
           </button>
-          <button className="btn-main" disabled={!ready || !teamName.trim() || !goal.trim() || purpose.trim().length < 20 || llm.loading} onClick={run}>
+          <button className="btn-main" disabled={!ready || !teamName.trim() || !goal.trim() || !industry || !leadership || purpose.trim().length < 20 || llm.loading} onClick={run}>
             {llm.loading ? "분석하는 중…" : "팀 케미 분석하기"}
           </button>
         </div>
@@ -274,6 +283,7 @@ export default function App() {
               {llm.error && <p className="err">{llm.error}</p>}
               {llm.s && (
                 <>
+                  {llm.s.organizationCulture && <div className="culture-report"><div className="culture-block"><div className="section-kicker">01 · COMPANY CULTURE</div><h3>{llm.s.organizationCulture.headline}</h3><p>{llm.s.organizationCulture.description}</p><ul>{llm.s.organizationCulture.signals?.map((item, i) => <li key={i}>{item}</li>)}</ul></div><div className="culture-block culture-team"><div className="section-kicker">02 · TEAM CULTURE</div><h3>{llm.s.teamCulture?.headline}</h3><p>{llm.s.teamCulture?.description}</p><ul>{llm.s.teamCulture?.operatingPrinciples?.map((item, i) => <li key={i}>{item}</li>)}</ul></div></div>}
                   <p className="lead">{llm.s.summary}</p>
                   <div className="cards">
                     {(llm.s.strengths || []).map((s, i) => (
