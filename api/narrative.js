@@ -86,10 +86,10 @@ const strengthsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀의 
 
 ${JSON.stringify(ctx, null, 2)}
 
-${STYLE} 사주참고가 있으면 일간·오행 분포·십신을 근거로 "화(火)가 상대적으로 강한 편"처럼 전문적으로 표현하되, 표면 오행 분포에 기반한 참고 해석임을 밝혀라. 사주가 성격·성과를 결정한다고 말하지 마라.
+${STYLE} 사주참고가 있으면 일간·오행 분포·십신을 근거로 "화(火)가 상대적으로 강한 편"처럼 전문적으로 표현하되, 표면 오행 분포에 기반한 참고 해석임을 밝혀라. 각 팀원마다 MBTI와 사주를 함께 엮어, 두 참고 체계가 역할·팀 목표에서 어떤 협업 경향으로 나타날 수 있는지 별도 문장으로 설명해라. MBTI나 사주가 성격·성과를 결정한다고 말하지 마라.
 
 JSON만 출력. 마크다운·설명 금지.
-{"summary":"팀 목표를 고려한 전체 협업 전망 2~3문장","strengths":[{"title":"6자 이내 제목","detail":"팀 목표에 어떻게 기여하는지 포함한 2문장"},{"title":"","detail":""},{"title":"","detail":""}],"memberInsights":[{"name":"팀원 이름","contribution":"현재 역할과 강점을 팀 목표에 연결한 2문장","watchout":"이 팀에서 협업할 때 주의할 점 1문장"}],"pairTip":"최고궁합 두 사람을 이 팀의 어떤 업무에 붙이면 좋은지 1문장","sajuSummary":"입력된 팀원의 일간·오행 분포를 팀 협업 관점에서 2~3문장으로 해석","sajuInsights":[{"name":"팀원 이름","dayMaster":"예: 계수(癸水)·음","elementSummary":"오행 분포 수치와 화(火) 등 상대적으로 강한 기운을 근거로 한 1~2문장","collaboration":"팀 목적과 역할에 적용한 협업 참고 1문장"}]}`;
+{"summary":"팀 목표를 고려한 전체 협업 전망 2~3문장","strengths":[{"title":"6자 이내 제목","detail":"팀 목표에 어떻게 기여하는지 포함한 2문장"},{"title":"","detail":""},{"title":"","detail":""}],"memberInsights":[{"name":"팀원 이름","contribution":"현재 역할과 강점을 팀 목표에 연결한 2문장","watchout":"이 팀에서 협업할 때 주의할 점 1문장"}],"pairTip":"최고궁합 두 사람을 이 팀의 어떤 업무에 붙이면 좋은지 1문장","sajuSummary":"입력된 팀원의 일간·오행 분포를 팀 협업 관점에서 2~3문장으로 해석","sajuInsights":[{"name":"팀원 이름","dayMaster":"예: 계수(癸水)·음","elementSummary":"오행 분포 수치와 화(火) 등 상대적으로 강한 기운을 근거로 한 1~2문장","collaboration":"팀 목적과 역할에 적용한 협업 참고 1문장","mbtiSajuProfile":"이 팀원의 MBTI 협업 경향과 사주 참고 성향을 함께 엮은 개인별 설명 2~3문장"}]}`;
 
 const conflictsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀의 목표, 현재 상황, 각 팀원의 MBTI 협업 경향, 역할과 업무 스타일을 종합해 실제로 생길 수 있는 잠재 갈등 시나리오를 새로 작성해라.
 
@@ -145,7 +145,7 @@ export default async function handler(req, res) {
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 6, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
+    .update(JSON.stringify({ v: 7, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
     .digest("hex");
 
   if (admin) {
