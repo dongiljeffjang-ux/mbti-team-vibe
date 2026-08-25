@@ -93,7 +93,7 @@ JSON만 출력. 마크다운·설명 금지.
 
 const conflictsPrompt = (ctx) => `너는 조직 협업 코치다. 아래 팀의 목표, 현재 상황, 각 팀원의 MBTI 협업 경향, 역할과 업무 스타일을 종합해 실제로 생길 수 있는 잠재 갈등 시나리오를 새로 작성해라.
 
-코드가 감지한 갈등 신호는 참고 자료일 뿐이다. 제목이나 문장을 그대로 복사하지 말고, 누가 어떤 업무 장면에서 왜 부딪힐 수 있는지 팀 맥락에 맞춰 구체화해라. MBTI만으로 사람을 단정하지 말고 가능성으로 표현해라. 갈등이 거의 없다면 억지로 만들지 말고 협업 리스크 1~2개만 제시해라.
+코드가 감지한 갈등 신호는 참고 자료일 뿐이다. 제목이나 문장을 그대로 복사하지 말고, 누가 어떤 업무 장면에서 왜 부딪힐 수 있는지 팀 목표·목적·역할·업무 스타일을 반영해 새로 작성해라. 반드시 최소 2개의 팀 맥락 기반 잠재 갈등을 제시해라. 단순히 "E와 I가 다르다"처럼 기계적인 유형 설명만 쓰지 말고, 실제 회의·의사결정·일정·고객 대응 장면으로 구체화해라. MBTI만으로 사람을 단정하지 말고 가능성으로 표현해라.
 
 ${JSON.stringify(ctx, null, 2)}
 
@@ -145,7 +145,7 @@ export default async function handler(req, res) {
 
   const cacheKey = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ v: 7, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
+    .update(JSON.stringify({ v: 8, model: MODEL, teamName, goal, purpose, members: members.map((m) => [m.name, m.type, m.role, m.note, m.birthDate, m.birthTime, m.birthCalendar, m.gender]) }))
     .digest("hex");
 
   if (admin) {
@@ -163,7 +163,7 @@ export default async function handler(req, res) {
   try {
     const [strengths, conflicts] = await Promise.all([ask(strengthsPrompt(ctx)), ask(conflictsPrompt(ctx))]);
     if (!strengths.summary || !Array.isArray(strengths.strengths)) throw new Error("강점 응답 형식이 올바르지 않습니다.");
-    if (!Array.isArray(conflicts.conflicts) || !Array.isArray(conflicts.tips) || !conflicts.scenarios?.conflict || !conflicts.scenarios?.synergy) throw new Error("갈등 응답 형식이 올바르지 않습니다.");
+    if (!Array.isArray(conflicts.conflicts) || conflicts.conflicts.length < 2 || !Array.isArray(conflicts.tips) || !conflicts.scenarios?.conflict || !conflicts.scenarios?.synergy) throw new Error("갈등 응답 형식이 올바르지 않습니다.");
     strengths.memberInsights = Array.isArray(strengths.memberInsights) ? strengths.memberInsights : [];
     strengths.sajuSummary = strengths.sajuSummary || "입력된 생년월일·생시가 없어 사주 참고 해석을 제공하지 않습니다.";
     strengths.sajuInsights = Array.isArray(strengths.sajuInsights) ? strengths.sajuInsights : [];
